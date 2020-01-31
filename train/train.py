@@ -4,6 +4,7 @@ import argparse
 import pandas as pd
 import os
 import glob
+import io
 
 from sklearn import tree
 from sklearn.externals import joblib
@@ -19,6 +20,7 @@ from sklearn.metrics import confusion_matrix
 from nltk.tokenize import word_tokenize
 from nltk.stem import PorterStemmer
 from nltk.stem import WordNetLemmatizer
+import numpy as np
 
 import nltk
 nltk.download('punkt')
@@ -63,6 +65,12 @@ def convert_to_feature(raw_tokenize_data):
     raw_sentences = [' '.join(o) for o in raw_tokenize_data]
     return vectorizer.transform(raw_sentences)
 
+def _npy_loads(data):
+    """
+    Deserializes npy-formatted bytes into a numpy array
+    """
+    stream = io.BytesIO(data)
+    return np.load(stream)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -123,6 +131,8 @@ def input_fn(request_body, request_content_type):
         message = str(request_body)
         print("converting message to string {}".format(message))
         return message
+    elif request_content_type == "application/x-npy":
+        return " ".join(_npy_loads(request_body))
     else:
         # Handle other content-types here or raise an Exception
         # if the content type is not supported.
